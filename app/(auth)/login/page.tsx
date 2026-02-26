@@ -27,8 +27,10 @@ export default function LoginPage() {
 
       message.success("登录成功");
       router.replace(ADMIN_HOME_PATH);
-    } catch (error: any) {
-      message.error(error.message || "登录失败，请稍后重试");
+    } catch (error) {
+        const errorMessage =
+        error instanceof Error ? error.message : "登录失败，请稍后重试";
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }

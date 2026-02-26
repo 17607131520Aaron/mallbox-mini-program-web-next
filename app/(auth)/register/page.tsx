@@ -25,8 +25,9 @@ export default function RegisterPage() {
       await new Promise((resolve) => setTimeout(resolve, 500));
       message.success("注册成功，请登录");
       router.replace(LOGIN_PATH);
-    } catch (error: any) {
-      message.error(error.message || "注册失败，请稍后重试");
+    } catch (error) {
+      const errorMessage =error instanceof Error ? error.message : "注册失败，请稍后重试";
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }

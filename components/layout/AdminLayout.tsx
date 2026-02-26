@@ -1,12 +1,22 @@
-'use client';
+"use client";
 
-import { Layout, Menu, Button } from "antd";
+import {
+  AppstoreOutlined,
+  SearchOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import { Layout, Input, List, Menu, Space, Avatar, Typography } from "antd";
 import type { MenuProps } from "antd";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useMemo, useTransition } from "react";
 import { SIDE_MENU_ITEMS, ADMIN_HOME_PATH } from "@/lib/routes";
+import useRootLayout from "./useRootLayout";
+import "./AdminLayout.scss";
 
 const { Header, Sider, Content } = Layout;
+const { Text } = Typography;
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -16,6 +26,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [, startTransition] = useTransition();
+
+  const {
+    collapsed,
+    handleComplete,
+    searchValue,
+    handleSearchChange,
+    openKeys,
+    handleOpenChange,
+  } = useRootLayout();
 
   const selectedKeys = useMemo(() => {
     const current =
@@ -33,7 +52,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const target = SIDE_MENU_ITEMS.find((item) => item.key === info.key);
     if (!target) return;
     startTransition(() => {
-      router.push(target.path === ADMIN_HOME_PATH ? "/" : target.path);
+      // 避免多余跳转和首页二次重定向导致的闪烁
+      if (!pathname.startsWith(target.path)) {
+        router.push(target.path);
+      }
     });
   };
 
@@ -43,35 +65,136 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sider theme="light" width={220}>
-        <div className="flex h-16 items-center justify-center border-b border-gray-200 text-lg font-semibold">
-          Mallbox 后台
+    <Layout className="devpocket-pages">
+      <Sider
+        collapsible
+        breakpoint="md"
+        className="devpocket-sider"
+        collapsed={collapsed}
+        collapsedWidth={80}
+        trigger={null}
+        width={240}
+        onBreakpoint={(broken) => {
+          handleComplete(broken);
+        }}
+      >
+        <div className="devpocket-sider-header">
+          <div className="devpocket-sider-header-logo">
+            <div className="devpocket-sider-header-logo-icon">
+              <AppstoreOutlined />
+            </div>
+            {!collapsed && (
+              <div className="devpocket-sider-header-logo-title">
+                我不知道叫什么
+              </div>
+            )}
+          </div>
         </div>
-        <Menu
-          mode="inline"
-          selectedKeys={selectedKeys}
-          items={items}
-          onClick={handleMenuClick}
-        />
+        {!collapsed && (
+          <div className="devpocket-sider-search">
+            <Input
+              allowClear
+              placeholder="搜索菜单"
+              prefix={<SearchOutlined />}
+              value={searchValue}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleSearchChange(e.target.value)
+              }
+            />
+          </div>
+        )}
+
+        <div className="devpocket-sider-menu">
+          <div className="devpocket-sider-menu-items">
+            <Menu
+              className="content"
+              items={items}
+              mode="inline"
+              openKeys={openKeys}
+              selectedKeys={selectedKeys}
+              theme="light"
+              onClick={handleMenuClick}
+              onOpenChange={handleOpenChange}
+            />
+          </div>
+        </div>
+
+        {/* <div className="devpocket-sider-menu">
+          {!showSearchResults ? (
+            <div className="devpocket-sider-menu-items">
+              <Menu
+                className="content"
+                items={menuItems}
+                mode="inline"
+                openKeys={openKeys}
+                selectedKeys={selectedKeys}
+                theme="light"
+                onClick={handleMenuClick}
+                onOpenChange={handleOpenChange}
+              />
+            </div>
+          ) : (
+            <div className="devpocket-sider-search-results">
+              <div className="devpocket-sider-search-results-count">
+                共搜索到 {flatSearchResults.length} 项与"{searchValue}"相关的菜单
+              </div>
+              <div className="devpocket-sider-search-results-list">
+                <List<IFlatMenuItem>
+                  dataSource={flatSearchResults || []}
+                  renderItem={(item: IFlatMenuItem) => (
+                    <List.Item
+                      className={`devpocket-sider-search-result-item ${
+                        selectedKeys.includes(item.key) ? "devpocket-sider-search-result-item-selected" : ""
+                      }`}
+                      onClick={() => {
+                        if (item.key.startsWith("/")) {
+                          handleMenuClick({ key: item.key });
+                        }
+                      }}
+                    >
+                      <div className="devpocket-sider-search-result-content">
+                        {item.icon && <span className="devpocket-sider-search-result-icon">{item.icon}</span>}
+                        <span className="devpocket-sider-search-result-label">
+                          {item.parentLabel ? `${item.parentLabel} / ${item.label}` : item.label}
+                        </span>
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              </div>
+            </div>
+          )}
+        </div> */}
       </Sider>
-      <Layout>
-        <Header className="flex items-center justify-between bg-white px-6 shadow-sm">
-          <div className="text-base font-medium">企业管理系统</div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">欢迎回来，管理员</span>
-            <Button size="small" onClick={handleLogout}>
-              退出登录
-            </Button>
+      <Layout className="devpocket-content">
+        <Header className="devpocket-content-header">
+          <div className="devpocket-content-header-left">
+            <div
+              className="devpocket-content-header-toggle"
+              onClick={() => handleComplete(!collapsed)}
+            >
+              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            </div>
+          </div>
+          <div className="devpocket-content-header-center" />
+          <div className="devpocket-content-header-right">
+            <Space size="middle">
+              <Space
+                className="devpocket-content-header-content-user"
+                style={{ cursor: "pointer" }}
+              >
+                <Avatar
+                  icon={<UserOutlined />}
+                  size={32}
+                  style={{ backgroundColor: "#237ffa" }}
+                />
+                <Text style={{ fontSize: 14, color: "#595959" }}>管理员</Text>
+              </Space>
+            </Space>
           </div>
         </Header>
-        <Content className="bg-slate-50 p-6">
-          <div className="min-h-[calc(100vh-120px)] rounded-lg bg-white p-6 shadow-sm">
-            {children}
-          </div>
-        </Content>
+        <Content className="devpocket-content-outlet">{children}</Content>
       </Layout>
     </Layout>
   );
 }
-

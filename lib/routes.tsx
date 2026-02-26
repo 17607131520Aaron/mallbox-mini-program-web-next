@@ -1,12 +1,15 @@
-export const ADMIN_HOME_PATH = "/dashboard";
+import React from "react";
+import { HomeOutlined } from "@ant-design/icons";
+export const ADMIN_HOME_PATH = "/home";
 export const LOGIN_PATH = "/login";
 export const REGISTER_PATH = "/register";
 
 export const SIDE_MENU_ITEMS = [
   {
-    key: "dashboard",
+    key: "home",
     label: "首页",
-    path: "/dashboard",
+    path: "/home",
+    icon: <HomeOutlined />,
   },
   {
     key: "users",
